@@ -1,3 +1,3 @@
 # major_project
  
-![image](https://github.com/user-attachments/assets/c9df0796-60ee-4354-911b-88c49ce0c33c)
+![jobVSsal](https://github.com/user-attachments/assets/0b903ebe-7edd-4821-9f94-b5e58381de72)
