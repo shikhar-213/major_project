@@ -1,9 +1,8 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, render_template, send_from_directory
 import torch
 from torchvision import transforms
 from PIL import Image
 import os
-import io
 import uuid  # To generate unique image filenames
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -30,7 +29,7 @@ transform = transforms.Compose([
 # **Serve the HTML Page**
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("index.html", prediction=None, image_url=None)
 
 # **Serve Uploaded Images**
 @app.route("/uploads/<filename>")
@@ -41,29 +40,30 @@ def uploaded_file(filename):
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+        return render_template("index.html", prediction="No file uploaded!", image_url=None)
 
     file = request.files['file']
-    
-    # **Save uploaded image**
-    filename = str(uuid.uuid4()) + ".jpg"  # Unique filename
+
+    # Ensure a file was selected
+    if file.filename == '':
+        return render_template("index.html", prediction="No file selected!", image_url=None)
+
+    # Save and process the uploaded image
+    filename = str(uuid.uuid4()) + ".jpg"
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(file_path)
 
-    # **Process Image for Prediction**
+    # Process the image for model prediction
     image = Image.open(file_path)
     image = transform(image).unsqueeze(0)
 
     with torch.no_grad():
         output = model(image)
         predicted_class_index = torch.argmax(output, 1).item()
-        predicted_class_name = class_names[predicted_class_index]  # Get disease name
+        predicted_class_name = class_names[predicted_class_index]
 
-    # **Return prediction & image URL**
-    return jsonify({
-        "predicted_class": predicted_class_name,
-        "image_url": f"/uploads/{filename}"
-    })
+    # Pass both prediction and image path to the template
+    return render_template("index.html", prediction=predicted_class_name, image_url=f"/uploads/{filename}")
 
 if __name__ == '__main__':
     app.run(debug=True)
