@@ -3,48 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plant Disease Detection</title>
+    <title>Plant Disease Classification</title>
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
 </head>
-<body bgcolor="lightblue">
-    <h1>Plant Disease Detection</h1>
-
-    <!-- Upload Form -->
-    <form id="upload-form" enctype="multipart/form-data">
-        <input type="file" id="file-input" name="file" accept="image/*" required>
+<body>
+    <h1>Plant Leaf Disease Detection</h1>
+    <div class="container">
+    <form id="update-form" action="/predict" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" id="file-input" required>
         <button type="submit">Predict</button>
     </form>
 
-    <h2>Prediction Result:</h2>
-    <p id="prediction-text"></p>
+    <!-- Preview uploaded image before submission -->
+    <div>
+        <h3>Uploaded Image:</h3>
+        <img id="preview" src="#" alt="Image Preview" style="display: none; max-width: 300px; height: auto;">
+    </div>
 
-    <!-- Display Uploaded Image -->
-    <h2>Uploaded Image:</h2>
-    <img id="uploaded-image" src="" alt="Uploaded Leaf Image" style="max-width: 300px; display: none;">
+    {% if prediction %}
+        <div class="result">
+            <h3>Predicted Disease: {{ prediction }}</h3>
+            <h3>Processed Image:</h3>
+            <img src="{{ image_url }}" alt="Uploaded Image" class="uploaded-image" style="max-width: 300px; height: auto;">
+        </div>
+    {% endif %}
+    </div>
 
-    <!-- JavaScript for Upload & Prediction -->
     <script>
-        document.getElementById("upload-form").addEventListener("submit", function(event) {
-            event.preventDefault();
-            
-            let formData = new FormData();
-            let fileInput = document.getElementById("file-input");
-            formData.append("file", fileInput.files[0]);
-
-            fetch("/predict", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("prediction-text").innerText = "Predicted Disease: " + data.predicted_class;
-                
-                // Show uploaded image
-                let imgElement = document.getElementById("uploaded-image");
-                imgElement.src = data.image_url;
-                imgElement.style.display = "block";
-            })
-            .catch(error => console.error("Error:", error));
-        });
+        function previewImage(event) {
+            var reader = new FileReader();
+            reader.onload = function(){
+                var output = document.getElementById('preview');
+                output.src = reader.result;
+                output.style.display = "block";
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
     </script>
 </body>
 </html>
